@@ -34,6 +34,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 
@@ -86,6 +87,19 @@ public:
     }
   }
 
+  void update(const geometry_msgs::msg::TwistStamped & twist)
+  {
+    using std::abs;
+
+    marker_.points[1].x = twist.twist.linear.x;
+
+    if (abs(twist.twist.linear.y) > abs(twist.twist.angular.z)) {
+      marker_.points[1].y = twist.twist.linear.y;
+    } else {
+      marker_.points[1].y = twist.twist.angular.z;
+    }
+  }
+
   const visualization_msgs::msg::Marker & getMarker()
   {
     return marker_;
@@ -107,21 +121,33 @@ public:
   {
     std::string frame_id;
     double scale;
+    bool use_stamped;
     double z;
 
     this->declare_parameter("frame_id", "base_footprint");
     this->declare_parameter("scale", 1.0);
+    this->declare_parameter("use_stamped", false);
     this->declare_parameter("vertical_position", 2.0);
 
     this->get_parameter<std::string>("frame_id", frame_id);
     this->get_parameter<double>("scale", scale);
+    this->get_parameter<bool>("use_stamped", use_stamped);
     this->get_parameter<double>("vertical_position", z);
 
     marker_ = std::make_shared<TwistMarker>(frame_id, scale, z);
 
-    sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
-      "twist", rclcpp::SystemDefaultsQoS(),
-      std::bind(&TwistMarkerPublisher::callback, this, std::placeholders::_1));
+    if (use_stamped)
+    {
+      sub_stamped_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
+        "twist", rclcpp::SystemDefaultsQoS(),
+        std::bind(&TwistMarkerPublisher::callback_stamped, this, std::placeholders::_1));
+    }
+    else
+    {
+      sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
+        "twist", rclcpp::SystemDefaultsQoS(),
+        std::bind(&TwistMarkerPublisher::callback, this, std::placeholders::_1));
+    }
 
     pub_ =
       this->create_publisher<visualization_msgs::msg::Marker>(
@@ -136,8 +162,16 @@ public:
     pub_->publish(marker_->getMarker());
   }
 
+  void callback_stamped(const geometry_msgs::msg::TwistStamped::ConstSharedPtr twist)
+  {
+    marker_->update(twist->twist);
+
+    pub_->publish(marker_->getMarker());
+  }
+
 private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_;
+  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr sub_stamped_;
   rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr pub_;
 
   std::shared_ptr<TwistMarker> marker_ = nullptr;
