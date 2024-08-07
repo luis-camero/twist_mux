@@ -87,19 +87,6 @@ public:
     }
   }
 
-  void update(const geometry_msgs::msg::TwistStamped & twist)
-  {
-    using std::abs;
-
-    marker_.points[1].x = twist.twist.linear.x;
-
-    if (abs(twist.twist.linear.y) > abs(twist.twist.angular.z)) {
-      marker_.points[1].y = twist.twist.linear.y;
-    } else {
-      marker_.points[1].y = twist.twist.angular.z;
-    }
-  }
-
   const visualization_msgs::msg::Marker & getMarker()
   {
     return marker_;
