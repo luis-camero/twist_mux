@@ -159,9 +159,6 @@ class VelocityTopicHandle : public TopicHandle_<geometry_msgs::msg::Twist>
 private:
   typedef TopicHandle_<geometry_msgs::msg::Twist> base_type;
 
-  // https://index.ros.org/doc/ros2/About-Quality-of-Service-Settings
-  // rmw_qos_profile_t twist_qos_profile = rmw_qos_profile_sensor_data;
-
 public:
   typedef typename base_type::priority_type priority_type;
 
@@ -173,10 +170,6 @@ public:
     subscriber_ = mux_->create_subscription<geometry_msgs::msg::Twist>(
       topic_, rclcpp::SystemDefaultsQoS(),
       std::bind(&VelocityTopicHandle::callback, this, std::placeholders::_1));
-
-    // subscriber_ = nh_.create_subscription<geometry_msgs::msg::Twist>(
-    //    topic_, twist_qos_profile,
-    //  std::bind(&VelocityTopicHandle::callback, this, std::placeholders::_1));
   }
 
   bool isMasked(priority_type lock_priority) const
@@ -205,9 +198,6 @@ class VelocityStampedTopicHandle : public TopicHandle_<geometry_msgs::msg::Twist
 private:
   typedef TopicHandle_<geometry_msgs::msg::TwistStamped> base_type;
 
-  // https://index.ros.org/doc/ros2/About-Quality-of-Service-Settings
-  // rmw_qos_profile_t twist_qos_profile = rmw_qos_profile_sensor_data;
-
 public:
   typedef typename base_type::priority_type priority_type;
 
@@ -223,7 +213,6 @@ public:
 
   bool isMasked(priority_type lock_priority) const
   {
-    // std::cout << hasExpired() << " / " << (getPriority() < lock_priority) << std::endl;
     return hasExpired() || (getPriority() < lock_priority);
   }
 
@@ -246,9 +235,6 @@ class LockTopicHandle : public TopicHandle_<std_msgs::msg::Bool>
 {
 private:
   typedef TopicHandle_<std_msgs::msg::Bool> base_type;
-
-  // https://index.ros.org/doc/ros2/About-Quality-of-Service-Settings
-  // rmw_qos_profile_t lock_qos_profile = rmw_qos_profile_sensor_data;
 
 public:
   typedef typename base_type::priority_type priority_type;
