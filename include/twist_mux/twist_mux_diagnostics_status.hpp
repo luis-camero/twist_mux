@@ -66,7 +66,7 @@ struct TwistMuxDiagnosticsStatus
     last_loop_update(rclcpp::Clock().now()),
     main_loop_time(0),
     priority(0),
-    use_stamped(false)
+    use_stamped(true)
   {
     velocity_hs = std::make_shared<TwistMux::velocity_topic_container>();
     velocity_stamped_hs = std::make_shared<TwistMux::velocity_stamped_topic_container>();
